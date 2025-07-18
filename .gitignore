@@ -1,33 +1,54 @@
-# Gradle files
-.gradle/
+# Node modules
+node_modules/
+
+# Expo specific
+.expo/
+.expo-shared/
+web-build/
+
+# Build outputs
+android/app/build/
+ios/build/
+dist/
 build/
 
-# Local configuration file (sdk path, etc)
-local.properties
+# OS files
+.DS_Store
+Thumbs.db
 
-# Log/OS Files
-*.log
-
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-output.json
-
-# IntelliJ
-*.iml
+# IDEs
+.vscode/
 .idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+*.sublime-workspace
+*.sublime-project
 
-# Keystore files
-*.jks
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+expo-debug.log
+
+# Environment files
+.env
+.env.*
 *.keystore
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+# Metro cache
+metro-cache/
+.cache/
+tmp/
 
-# Android Profiling
-*.hprof
+# Babel
+babel.config.js.__generated__
+
+# Testing
+coverage/
+
+# Misc
+*.log
+*.lock
+package-lock.json yarn.lock # (optional, if you're avoiding lockfiles in teams)
+
+# SQLite DB (if stored locally)
+*.db
+*.db-journal
