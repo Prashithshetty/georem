@@ -1,223 +1,175 @@
-# GeoRem - Location-Based Reminder App
+# Location-Based Reminder App - Main Screen
 
-A modern, Android-only, offline location-based reminder app built with React Native + Expo. Features Material You (Material 3) design and native geofencing capabilities.
+A React Native application for managing location-based reminders with a clean, modern UI design.
 
-## 🚀 Features
+## 📱 Features
 
-### ✨ Core Functionality
-- **Offline-First**: No cloud backend required - all data stored locally
-- **Native Geofencing**: Uses device-native geofencing APIs for battery-efficient location monitoring
-- **Material 3 Design**: Modern, expressive UI following Material You design guidelines
-- **Dual Reminder Types**: Support for both simple notes and interactive checklists
-- **Smart Notifications**: Location-triggered notifications with vibration and sound
+- **Main Screen**: Displays all active reminders in a scrollable list
+- **Reminder Items**: Each item shows the reminder title and assigned location
+- **Floating Action Button**: Persistent "Add Reminder" button positioned at bottom-right
+- **Empty State**: User-friendly message when no reminders exist
+- **Pull-to-Refresh**: Refresh reminders by pulling down the list
+- **Responsive Design**: Optimized for different screen sizes
+- **Smooth Animations**: Interactive feedback with scale animations
 
-### 📱 User Interface
-- **Intuitive Creation Flow**: Easy-to-use reminder creation with location picker
-- **Interactive Maps**: Google Places autocomplete with draggable pins
-- **Flexible Radius Selection**: Customizable geofence radius (100m - 1km)
-- **Visual Feedback**: Real-time map visualization of geofence areas
-- **Responsive Design**: Optimized for various Android screen sizes
+## 🏗️ Component Structure
 
-### 🔧 Technical Features
-- **Background Processing**: Geofences work even when app is closed
-- **Permission Management**: Proper handling of location and notification permissions
-- **Error Handling**: Comprehensive error handling and user feedback
-- **Performance Optimized**: Efficient storage and minimal battery drain
-
-## 📋 Requirements
-
-- **Platform**: Android only
-- **Node.js**: 16.x or higher
-- **Expo CLI**: Latest version
-- **Android Studio**: For device testing
-- **Google Places API Key**: For location search functionality
-
-## 🛠️ Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd georem-location-reminder
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Google Places API**
-   - Get a Google Places API key from Google Cloud Console
-   - Replace `YOUR_GOOGLE_PLACES_API_KEY` in `src/components/LocationPickerMap.jsx`
-
-4. **Start the development server**
-   ```bash
-   npm start
-   ```
-
-5. **Run on Android device**
-   ```bash
-   npm run android
-   ```
+```
+App
+└── MainScreen
+    ├── Header (App title)
+    ├── FlatList (Reminder list)
+    │   ├── ReminderItem (Individual reminder)
+    │   └── EmptyState (When no reminders)
+    └── FloatingActionButton (Add reminder)
+```
 
 ## 📁 Project Structure
 
 ```
-src/
-├── components/
-│   ├── ChecklistInput.jsx          # Checklist management component
-│   ├── LocationPickerMap.jsx       # Interactive map with autocomplete
-│   └── RadiusSelectorSlider.jsx    # Radius selection slider
-├── screens/
-│   ├── HomeScreen.jsx              # Main screen showing all reminders
-│   ├── ReminderInputScreen.jsx     # Reminder creation form
-│   └── LocationPickerScreen.jsx    # Location and radius selection
-├── hooks/
-│   └── useGeofenceTrigger.js       # Geofence event handling hook
-├── utils/
-│   └── GeofenceSetupUtil.js        # Native geofencing utilities
-└── store/
-    └── storage.js                  # Local data persistence
+├── App.js                          # Main app component
+├── index.js                        # App entry point
+├── package.json                    # Dependencies and scripts
+├── src/
+│   ├── components/
+│   │   ├── EmptyState.js           # Empty state component
+│   │   ├── FloatingActionButton.js # FAB component
+│   │   └── ReminderItem.js         # Individual reminder item
+│   ├── data/
+│   │   └── mockData.js             # Sample reminder data
+│   ├── screens/
+│   │   └── MainScreen.js           # Main screen component
+│   └── styles/
+│       └── styles.js               # Centralized styling
 ```
 
 ## 🎨 Design System
 
-The app follows Material 3 (Material You) design principles:
+### Colors
+- **Primary**: #6366F1 (Indigo)
+- **Secondary**: #10B981 (Emerald)
+- **Background**: #F8FAFC (Slate)
+- **Surface**: #FFFFFF (White)
+- **Text**: #1F2937 (Gray-800)
 
-- **Color System**: Dynamic color theming with primary, secondary, and tertiary colors
-- **Typography**: Material 3 type scale with appropriate font weights
-- **Elevation**: Proper surface elevation and shadow system
-- **Motion**: Smooth transitions and micro-interactions
-- **Accessibility**: High contrast ratios and touch target sizes
+### Typography
+- **Headers**: 24-28px, Semi-bold/Bold
+- **Body**: 16px, Regular
+- **Secondary**: 14px, Regular
+- **Caption**: 12px, Regular
 
-## 🔐 Permissions
+### Spacing
+- **XS**: 4px
+- **SM**: 8px
+- **MD**: 16px
+- **LG**: 24px
+- **XL**: 32px
 
-The app requires the following Android permissions:
+## 🚀 Getting Started
 
-- `ACCESS_FINE_LOCATION` - For precise location access
-- `ACCESS_COARSE_LOCATION` - For general location access
-- `ACCESS_BACKGROUND_LOCATION` - For background geofencing
-- `VIBRATE` - For notification vibration
-- `RECEIVE_BOOT_COMPLETED` - For geofence persistence after reboot
-- `WAKE_LOCK` - For background processing
+### Prerequisites
+- Node.js (v14 or higher)
+- React Native CLI
+- Android Studio (for Android development)
+- Xcode (for iOS development)
 
-## 📊 Data Storage
+### Installation
 
-All data is stored locally using AsyncStorage:
-
-```javascript
-// Reminder object structure
-{
-  id: "reminder_timestamp_randomId",
-  title: "Reminder title",
-  type: "single" | "checklist",
-  checklist: ["item1", "item2"], // Only for checklist type
-  location: {
-    latitude: 37.7749,
-    longitude: -122.4194,
-    address: "Optional address string"
-  },
-  radius: 200, // Radius in meters
-  createdAt: "2024-01-01T00:00:00.000Z",
-  updatedAt: "2024-01-01T00:00:00.000Z"
-}
+1. Install dependencies:
+```bash
+npm install
 ```
 
-## 🔔 Notification System
+2. For iOS (macOS only):
+```bash
+cd ios && pod install && cd ..
+```
 
-The app uses Expo Notifications for local notifications:
+3. Run the application:
 
-- **Trigger**: Geofence entry events
-- **Content**: Reminder title and checklist preview
-- **Sound**: Default notification sound
-- **Vibration**: Custom vibration pattern
-- **Priority**: High priority for immediate display
+For Android:
+```bash
+npm run android
+```
+
+For iOS:
+```bash
+npm run ios
+```
+
+## 📱 Component Details
+
+### MainScreen
+- Manages the main application state
+- Handles reminder loading and refreshing
+- Implements pull-to-refresh functionality
+- Manages navigation to add reminder screen
+
+### ReminderItem
+- Displays individual reminder information
+- Shows title and location with proper typography
+- Includes interactive animations
+- Displays creation date and status indicator
+
+### FloatingActionButton
+- Persistent button positioned at bottom-right
+- Smooth scale animations on press
+- Material Design inspired styling
+- Accessible with proper test IDs
+
+### EmptyState
+- User-friendly empty state design
+- Clear call-to-action messaging
+- Consistent with app's visual design
+- Includes location icon for context
+
+## 🔧 Customization
+
+### Adding New Reminders
+The app currently uses mock data. To integrate with a real backend:
+
+1. Replace `mockData.js` with API calls
+2. Update the `loadReminders` function in `MainScreen.js`
+3. Implement proper error handling and loading states
+
+### Styling
+All styles are centralized in `src/styles/styles.js`:
+- Modify colors in the `colors` object
+- Update typography in the `typography` object
+- Adjust spacing using the `spacing` object
+
+### Navigation
+To add navigation functionality:
+1. Install React Navigation
+2. Set up navigation container
+3. Update the `handleAddReminder` function to navigate to add screen
 
 ## 🧪 Testing
 
-### Manual Testing Checklist
+The components include test IDs for automated testing:
+- `reminders-list`: Main FlatList component
+- `reminder-item-{index}`: Individual reminder items
+- `add-reminder-fab`: Floating action button
+- `empty-state`: Empty state component
 
-1. **Reminder Creation**
-   - [ ] Create single note reminder
-   - [ ] Create checklist reminder
-   - [ ] Select location via map
-   - [ ] Adjust geofence radius
-   - [ ] Save reminder successfully
+## 📝 Future Enhancements
 
-2. **Location Features**
-   - [ ] Search places via autocomplete
-   - [ ] Drag pin to adjust location
-   - [ ] Current location detection
-   - [ ] Map zoom and pan
-
-3. **Geofencing**
-   - [ ] Geofence setup after reminder creation
-   - [ ] Background location monitoring
-   - [ ] Notification trigger on location entry
-   - [ ] Geofence removal on reminder deletion
-
-4. **Data Persistence**
-   - [ ] Reminders persist after app restart
-   - [ ] Geofences restore after device reboot
-   - [ ] Data integrity maintained
-
-### Device Testing
-
-Test on various Android devices:
-- Different screen sizes (phone, tablet)
-- Different Android versions (API 21+)
-- Different manufacturers (Samsung, Google, etc.)
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-1. **Geofencing not working**
-   - Ensure location permissions are granted
-   - Check if battery optimization is disabled for the app
-   - Verify background app refresh is enabled
-
-2. **Google Places not working**
-   - Verify API key is correctly configured
-   - Check API key has Places API enabled
-   - Ensure billing is set up for Google Cloud project
-
-3. **Notifications not appearing**
-   - Check notification permissions
-   - Verify Do Not Disturb settings
-   - Test with `testNotification` function
-
-### Debug Mode
-
-Enable debug mode by setting `debug: true` in `GeofenceSetupUtil.js` to see detailed logs.
-
-## 🔄 Future Enhancements
-
-- **Export/Import**: Backup and restore reminders
-- **Categories**: Organize reminders by categories
-- **Recurring Reminders**: Time-based recurring location reminders
-- **Statistics**: Usage analytics and insights
-- **Widgets**: Home screen widgets for quick access
-- **Voice Input**: Voice-to-text for reminder creation
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- [ ] Add React Navigation for screen transitions
+- [ ] Implement real API integration
+- [ ] Add swipe actions (edit/delete)
+- [ ] Include location services integration
+- [ ] Add push notifications
+- [ ] Implement reminder categories
+- [ ] Add search and filter functionality
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📞 Support
+## 📄 License
 
-For support and questions:
-- Create an issue in the repository
-- Check the troubleshooting section
-- Review the documentation
-
----
-
-**Built with ❤️ using React Native + Expo**
+This project is licensed under the MIT License.
