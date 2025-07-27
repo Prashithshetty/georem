@@ -1,175 +1,191 @@
-# Location-Based Reminder App - Main Screen
+# GeoRem - Location Reminder App
 
-A React Native application for managing location-based reminders with a clean, modern UI design.
+A React Native Expo application for creating location-based reminders with geofencing capabilities.
 
 ## 📱 Features
 
-- **Main Screen**: Displays all active reminders in a scrollable list
-- **Reminder Items**: Each item shows the reminder title and assigned location
-- **Floating Action Button**: Persistent "Add Reminder" button positioned at bottom-right
-- **Empty State**: User-friendly message when no reminders exist
-- **Pull-to-Refresh**: Refresh reminders by pulling down the list
-- **Responsive Design**: Optimized for different screen sizes
-- **Smooth Animations**: Interactive feedback with scale animations
-
-## 🏗️ Component Structure
-
-```
-App
-└── MainScreen
-    ├── Header (App title)
-    ├── FlatList (Reminder list)
-    │   ├── ReminderItem (Individual reminder)
-    │   └── EmptyState (When no reminders)
-    └── FloatingActionButton (Add reminder)
-```
-
-## 📁 Project Structure
-
-```
-├── App.js                          # Main app component
-├── index.js                        # App entry point
-├── package.json                    # Dependencies and scripts
-├── src/
-│   ├── components/
-│   │   ├── EmptyState.js           # Empty state component
-│   │   ├── FloatingActionButton.js # FAB component
-│   │   └── ReminderItem.js         # Individual reminder item
-│   ├── data/
-│   │   └── mockData.js             # Sample reminder data
-│   ├── screens/
-│   │   └── MainScreen.js           # Main screen component
-│   └── styles/
-│       └── styles.js               # Centralized styling
-```
-
-## 🎨 Design System
-
-### Colors
-- **Primary**: #6366F1 (Indigo)
-- **Secondary**: #10B981 (Emerald)
-- **Background**: #F8FAFC (Slate)
-- **Surface**: #FFFFFF (White)
-- **Text**: #1F2937 (Gray-800)
-
-### Typography
-- **Headers**: 24-28px, Semi-bold/Bold
-- **Body**: 16px, Regular
-- **Secondary**: 14px, Regular
-- **Caption**: 12px, Regular
-
-### Spacing
-- **XS**: 4px
-- **SM**: 8px
-- **MD**: 16px
-- **LG**: 24px
-- **XL**: 32px
+- **Location-Based Reminders**: Create reminders that trigger when you arrive at or leave specific locations
+- **Geofencing**: Background location monitoring with Expo Location services
+- **Push Notifications**: Receive notifications even when the app is closed
+- **Search Locations**: Search for places using the built-in location search
+- **Current Location**: Use your current location to set reminders
+- **Custom Radius**: Set custom radius for each reminder (100m - 5km)
+- **Modern UI**: Clean, responsive design with smooth animations
+- **Cross-Platform**: Works on both Android and iOS
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- React Native CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development)
+
+- Node.js (v16 or higher)
+- npm or yarn
+- Expo CLI (`npm install -g expo-cli`)
+- EAS CLI for building (`npm install -g eas-cli`)
+- Expo Go app on your phone (for development)
 
 ### Installation
 
-1. Install dependencies:
+1. **Clone the repository:**
+```bash
+git clone <your-repo-url>
+cd georem
+```
+
+2. **Navigate to the project directory:**
+```bash
+cd LocationReminderApp
+```
+
+3. **Install dependencies:**
 ```bash
 npm install
 ```
 
-2. For iOS (macOS only):
+4. **Start the development server:**
 ```bash
-cd ios && pod install && cd ..
+npm start
 ```
 
-3. Run the application:
+5. **Run on your device:**
+- Scan the QR code with Expo Go app (Android) or Camera app (iOS)
+- Or press `a` for Android emulator, `i` for iOS simulator
 
-For Android:
+## 📱 Building the App
+
+### Building APK with EAS Build
+
+1. **Login to Expo:**
 ```bash
-npm run android
+eas login
 ```
 
-For iOS:
+2. **Configure EAS Build (first time only):**
 ```bash
-npm run ios
+eas build:configure
 ```
 
-## 📱 Component Details
+3. **Build APK for Android:**
+```bash
+# For testing (APK)
+eas build --platform android --profile preview
 
-### MainScreen
-- Manages the main application state
-- Handles reminder loading and refreshing
-- Implements pull-to-refresh functionality
-- Manages navigation to add reminder screen
+# For production (AAB for Play Store)
+eas build --platform android --profile production
+```
 
-### ReminderItem
-- Displays individual reminder information
-- Shows title and location with proper typography
-- Includes interactive animations
-- Displays creation date and status indicator
+4. **Download the build:**
+- Once complete, you'll get a download link
+- Or check builds: `eas build:list`
 
-### FloatingActionButton
-- Persistent button positioned at bottom-right
-- Smooth scale animations on press
-- Material Design inspired styling
-- Accessible with proper test IDs
+### Build Profiles
 
-### EmptyState
-- User-friendly empty state design
-- Clear call-to-action messaging
-- Consistent with app's visual design
-- Includes location icon for context
+The app includes three build profiles in `eas.json`:
+- **development**: Debug builds with dev tools
+- **preview**: APK builds for testing
+- **production**: AAB builds for app stores
 
-## 🔧 Customization
+## 🏗️ Project Structure
 
-### Adding New Reminders
-The app currently uses mock data. To integrate with a real backend:
+```
+LocationReminderApp/
+├── App.js                    # Main app entry point
+├── app.json                  # Expo configuration
+├── app.config.js            # Dynamic app configuration
+├── package.json             # Dependencies
+├── eas.json                 # EAS Build configuration
+├── assets/                  # App icons and images
+└── src/
+    ├── components/          # Reusable UI components
+    ├── screens/            # App screens
+    ├── services/           # Business logic services
+    ├── context/            # React Context for state
+    ├── data/              # Mock data and constants
+    ├── styles/            # Styling constants
+    └── utils/             # Utility functions
+```
 
-1. Replace `mockData.js` with API calls
-2. Update the `loadReminders` function in `MainScreen.js`
-3. Implement proper error handling and loading states
+## 🔧 Configuration
 
-### Styling
-All styles are centralized in `src/styles/styles.js`:
-- Modify colors in the `colors` object
-- Update typography in the `typography` object
-- Adjust spacing using the `spacing` object
+### App Permissions
 
-### Navigation
-To add navigation functionality:
-1. Install React Navigation
-2. Set up navigation container
-3. Update the `handleAddReminder` function to navigate to add screen
+The app requires the following permissions:
+- **Location** (Always): For geofencing to work in background
+- **Notifications**: For reminder alerts
+- **Background Location**: For monitoring geofences
 
-## 🧪 Testing
+### Key Technologies
 
-The components include test IDs for automated testing:
-- `reminders-list`: Main FlatList component
-- `reminder-item-{index}`: Individual reminder items
-- `add-reminder-fab`: Floating action button
-- `empty-state`: Empty state component
+- **React Native**: Cross-platform mobile framework
+- **Expo**: Development platform and build service
+- **Expo Location**: Geofencing and location services
+- **Expo Notifications**: Push notifications
+- **AsyncStorage**: Local data persistence
+- **React Context**: State management
 
-## 📝 Future Enhancements
+## 🎨 Features Overview
 
-- [ ] Add React Navigation for screen transitions
-- [ ] Implement real API integration
-- [ ] Add swipe actions (edit/delete)
-- [ ] Include location services integration
-- [ ] Add push notifications
-- [ ] Implement reminder categories
-- [ ] Add search and filter functionality
+### Creating Reminders
+1. Tap the floating action button (+)
+2. Search for a location or use current location
+3. Set reminder details (title, notes, radius)
+4. Choose trigger type (arrive/leave)
+5. Save the reminder
 
-## 🤝 Contributing
+### Managing Reminders
+- View all reminders on the main screen
+- Toggle reminders on/off
+- Delete reminders by swiping or long-press
+- See geofence status indicators
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+### Location Search
+- Search by place name, address, or coordinates
+- View search results with addresses
+- Select from suggestions
+- Use current location option
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Location permissions not working:**
+   - Go to device settings
+   - Find the app and grant "Allow all the time" permission
+   - Ensure location services are enabled
+
+2. **Notifications not showing:**
+   - Check notification permissions in settings
+   - Disable battery optimization for the app
+   - Ensure Do Not Disturb is off
+
+3. **Geofencing not triggering:**
+   - Verify background location permission
+   - Check that the reminder is enabled
+   - Ensure you're outside the geofence before testing
+
+4. **Build failures:**
+   - Clear cache: `expo start --clear`
+   - Delete node_modules and reinstall
+   - Check EAS build logs for errors
 
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📞 Support
+
+For issues and questions:
+- Open an issue on GitHub
+- Check existing issues for solutions
+- Provide detailed error logs when reporting bugs
+
+---
+
+Built with ❤️ using React Native and Expo

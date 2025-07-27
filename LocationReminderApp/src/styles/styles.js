@@ -14,6 +14,7 @@ export const colors = {
   shadow: '#000000',
   error: '#EF4444',
   warning: '#F59E0B',
+  success: '#10B981',
 };
 
 export const typography = {
@@ -107,10 +108,12 @@ export const globalStyles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+    paddingTop: spacing.xl, // Added extra padding for punch hole cameras
   },
   header: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
+    paddingTop: spacing.md, // Reduced top padding since SafeAreaView now has padding
+    paddingBottom: spacing.lg,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
