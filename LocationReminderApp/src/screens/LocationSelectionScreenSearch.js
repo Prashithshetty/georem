@@ -12,6 +12,7 @@ import {
   Platform,
   FlatList,
   KeyboardAvoidingView,
+  SectionList,
 } from 'react-native';
 import { colors, typography, spacing, borderRadius, shadows, globalStyles } from '../styles/styles';
 import {
@@ -19,6 +20,8 @@ import {
   getCurrentLocation,
   formatCoordinates,
 } from '../utils/locationUtils';
+import LocationHistoryService from '../services/LocationHistoryService';
+import LocationHistoryItem from '../components/LocationHistoryItem';
 
 const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLocation }) => {
   const [selectedLocation, setSelectedLocation] = useState(initialLocation || null);
@@ -27,14 +30,13 @@ const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLo
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [recentSearches, setRecentSearches] = useState([
-    { id: '1', name: 'Times Square, New York', lat: 40.7580, lng: -73.9855 },
-    { id: '2', name: 'Central Park, New York', lat: 40.7829, lng: -73.9654 },
-    { id: '3', name: 'Empire State Building', lat: 40.7484, lng: -73.9857 },
-  ]);
+  const [recentLocations, setRecentLocations] = useState([]);
+  const [frequentLocations, setFrequentLocations] = useState([]);
+  const [showClearHistory, setShowClearHistory] = useState(false);
 
   useEffect(() => {
     initializeLocation();
+    loadLocationHistory();
   }, []);
 
   const initializeLocation = async () => {
@@ -43,6 +45,17 @@ const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLo
       setHasLocationPermission(permissionGranted);
     } catch (error) {
       console.error('Location initialization error:', error);
+    }
+  };
+
+  const loadLocationHistory = async () => {
+    try {
+      const recent = await LocationHistoryService.getRecentLocations(5);
+      const frequent = await LocationHistoryService.getFrequentLocations(3);
+      setRecentLocations(recent);
+      setFrequentLocations(frequent);
+    } catch (error) {
+      console.error('Error loading location history:', error);
     }
   };
 
@@ -170,13 +183,49 @@ const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLo
   };
 
   const handleLocationSelect = (location) => {
-    setSelectedLocation({
-      latitude: location.lat,
-      longitude: location.lng,
-      address: location.name,
-    });
+    const formattedLocation = {
+      latitude: location.lat || location.latitude,
+      longitude: location.lng || location.longitude,
+      address: location.name || location.address,
+    };
+    
+    setSelectedLocation(formattedLocation);
     setSearchResults([]);
     setSearchQuery('');
+  };
+
+  const handleHistoryItemRemove = async (locationId) => {
+    try {
+      await LocationHistoryService.removeFromHistory(locationId);
+      loadLocationHistory();
+    } catch (error) {
+      console.error('Error removing location from history:', error);
+    }
+  };
+
+  const handleClearHistory = () => {
+    Alert.alert(
+      'Clear Location History',
+      'Are you sure you want to clear all location history? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Clear', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await LocationHistoryService.clearAll();
+              setRecentLocations([]);
+              setFrequentLocations([]);
+              setShowClearHistory(false);
+            } catch (error) {
+              console.error('Error clearing history:', error);
+              Alert.alert('Error', 'Failed to clear location history');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleConfirmLocation = () => {
@@ -262,17 +311,78 @@ const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLo
     </TouchableOpacity>
   );
 
-  const renderRecentSearch = ({ item }) => (
-    <TouchableOpacity
-      style={styles.recentItem}
-      onPress={() => handleLocationSelect(item)}
-    >
-      <Text style={styles.recentIcon}>🕐</Text>
-      <Text style={styles.recentText} numberOfLines={1}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderLocationHistorySections = () => {
+    const sections = [];
+    
+    if (frequentLocations.length > 0) {
+      sections.push({
+        title: 'Frequently Used',
+        data: frequentLocations,
+        isFrequent: true,
+      });
+    }
+    
+    if (recentLocations.length > 0) {
+      sections.push({
+        title: 'Recent Locations',
+        data: recentLocations,
+        isFrequent: false,
+      });
+    }
+
+    if (sections.length === 0) {
+      return (
+        <View style={styles.emptyHistoryContainer}>
+          <Text style={styles.emptyHistoryText}>No location history yet</Text>
+          <Text style={styles.emptyHistorySubtext}>
+            Your recently used locations will appear here
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <SectionList
+        sections={sections}
+        keyExtractor={(item, index) => item.id || `location-${index}`}
+        renderItem={({ item, section }) => (
+          <LocationHistoryItem
+            location={item}
+            onPress={handleLocationSelect}
+            onRemove={showClearHistory ? handleHistoryItemRemove : null}
+            showFrequency={section.isFrequent}
+            isFrequent={section.isFrequent}
+          />
+        )}
+        renderSectionHeader={({ section }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            {section.title === 'Recent Locations' && recentLocations.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setShowClearHistory(!showClearHistory)}
+                style={styles.editButton}
+              >
+                <Text style={styles.editButtonText}>
+                  {showClearHistory ? 'Done' : 'Edit'}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
+        ListFooterComponent={() => showClearHistory && (
+          <TouchableOpacity
+            style={styles.clearHistoryButton}
+            onPress={handleClearHistory}
+          >
+            <Text style={styles.clearHistoryText}>Clear All History</Text>
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.historyList}
+      />
+    );
+  };
 
   if (isLoading) {
     return (
@@ -324,13 +434,7 @@ const LocationSelectionScreenSearch = ({ navigation, onLocationSelect, initialLo
           />
         ) : searchQuery.length === 0 && (
           <View style={styles.recentSearchesContainer}>
-            <Text style={styles.sectionTitle}>Recent Searches</Text>
-            <FlatList
-              data={recentSearches}
-              renderItem={renderRecentSearch}
-              keyExtractor={(item) => item.id}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
+            {renderLocationHistorySections()}
           </View>
         )}
 
@@ -494,27 +598,60 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: spacing.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    backgroundColor: colors.background,
+  },
   sectionTitle: {
     ...typography.body1,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: spacing.sm,
   },
-  recentItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    padding: spacing.sm,
-    borderRadius: borderRadius.md,
+  editButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
-  recentIcon: {
-    fontSize: 18,
-    marginRight: spacing.sm,
-  },
-  recentText: {
+  editButtonText: {
     ...typography.body2,
-    color: colors.text,
-    flex: 1,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  historyList: {
+    paddingBottom: spacing.lg,
+  },
+  sectionSeparator: {
+    height: spacing.md,
+  },
+  emptyHistoryContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl,
+  },
+  emptyHistoryText: {
+    ...typography.body1,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  emptyHistorySubtext: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  clearHistoryButton: {
+    backgroundColor: colors.error + '10',
+    marginTop: spacing.md,
+    marginHorizontal: spacing.md,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+  },
+  clearHistoryText: {
+    ...typography.body2,
+    color: colors.error,
+    fontWeight: '600',
   },
   selectedLocationCard: {
     backgroundColor: colors.secondary + '20',

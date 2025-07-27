@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   StyleSheet,
+  Animated,
+  ScrollView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useApp } from '../context/AppContext';
@@ -17,6 +19,7 @@ import ReminderItem from '../components/ReminderItem';
 import FloatingActionButton from '../components/FloatingActionButton';
 import EmptyState from '../components/EmptyState';
 import CreateReminderScreen from './CreateReminderScreen';
+import ReminderStats from '../components/ReminderStats';
 import { colors, globalStyles, spacing, typography, borderRadius, shadows } from '../styles/styles';
 
 const MainScreen = () => {
@@ -35,6 +38,9 @@ const MainScreen = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedReminder, setSelectedReminder] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showStats, setShowStats] = useState(true);
+  const [filterType, setFilterType] = useState('all'); // 'all', 'active', 'inactive'
+  const scrollY = React.useRef(new Animated.Value(0)).current;
 
   const handleRefresh = useCallback(async () => {
     await refreshReminders();
@@ -112,25 +118,94 @@ const MainScreen = () => {
     />
   ), [handleReminderPress, handleGeofencePress, handleToggleStatus, handleDeleteReminder]);
 
-  const renderEmptyComponent = useCallback(() => (
-    <EmptyState
-      title="No Active Reminders"
-      message="Create your first location-based reminder to get started. You'll be notified when you arrive at or leave your chosen locations."
-    />
-  ), []);
+  const getFilteredReminders = useCallback(() => {
+    switch (filterType) {
+      case 'active':
+        return reminders.filter(r => r.isActive);
+      case 'inactive':
+        return reminders.filter(r => !r.isActive);
+      default:
+        return reminders;
+    }
+  }, [reminders, filterType]);
 
-  const renderHeader = useCallback(() => (
-    <View style={styles.header}>
-      <View>
-        <Text style={globalStyles.headerTitle}>GeoRem</Text>
-        {geofenceStatus.isMonitoring && (
-          <Text style={styles.monitoringStatus}>
-            📍 Monitoring {geofenceStatus.activeGeofencesCount} location{geofenceStatus.activeGeofencesCount !== 1 ? 's' : ''}
-          </Text>
+  const renderEmptyComponent = useCallback(() => {
+    const filteredCount = getFilteredReminders().length;
+    const hasReminders = reminders.length > 0;
+
+    if (hasReminders && filteredCount === 0) {
+      return (
+        <EmptyState
+          title={`No ${filterType === 'active' ? 'Active' : 'Inactive'} Reminders`}
+          message={`You don't have any ${filterType === 'active' ? 'active' : 'inactive'} reminders. Try changing the filter to see all reminders.`}
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        title="No Reminders Yet"
+        message="Create your first location-based reminder to get started. You'll be notified when you arrive at or leave your chosen locations."
+      />
+    );
+  }, [reminders.length, filterType, getFilteredReminders]);
+
+  const renderHeader = useCallback(() => {
+    const headerOpacity = scrollY.interpolate({
+      inputRange: [0, 100],
+      outputRange: [1, 0.9],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
+        <View style={styles.headerContent}>
+          <Text style={globalStyles.headerTitle}>GeoRem</Text>
+          <TouchableOpacity
+            style={styles.statsToggle}
+            onPress={() => setShowStats(!showStats)}
+          >
+            <Text style={styles.statsToggleIcon}>{showStats ? '📊' : '📈'}</Text>
+          </TouchableOpacity>
+        </View>
+        
+        {showStats && (
+          <ReminderStats 
+            reminders={reminders} 
+            geofenceStatus={geofenceStatus}
+          />
         )}
-      </View>
-    </View>
-  ), [geofenceStatus]);
+        
+        {reminders.length > 0 && (
+          <View style={styles.filterContainer}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterScroll}
+            >
+              {['all', 'active', 'inactive'].map((type) => (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.filterButton,
+                    filterType === type && styles.filterButtonActive
+                  ]}
+                  onPress={() => setFilterType(type)}
+                >
+                  <Text style={[
+                    styles.filterButtonText,
+                    filterType === type && styles.filterButtonTextActive
+                  ]}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </Animated.View>
+    );
+  }, [geofenceStatus, reminders, showStats, filterType, scrollY]);
 
   const renderDetailsModal = useCallback(() => {
     if (!selectedReminder) return null;
@@ -222,13 +297,13 @@ const MainScreen = () => {
       {renderHeader()}
       
       <View style={globalStyles.container}>
-        <FlatList
-          data={reminders}
+        <Animated.FlatList
+          data={getFilteredReminders()}
           renderItem={renderReminderItem}
           keyExtractor={(item) => item.id}
           contentContainerStyle={[
             globalStyles.listContainer,
-            reminders.length === 0 && { flex: 1 }
+            getFilteredReminders().length === 0 && { flex: 1 }
           ]}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -241,6 +316,11 @@ const MainScreen = () => {
           }
           ListEmptyComponent={renderEmptyComponent}
           ItemSeparatorComponent={() => <View style={{ height: spacing.xs }} />}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
           testID="reminders-list"
         />
         
@@ -274,13 +354,52 @@ const MainScreen = () => {
 
 const styles = StyleSheet.create({
   header: {
-    ...globalStyles.header,
+    backgroundColor: colors.surface,
+    paddingTop: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    ...shadows.small,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
     paddingBottom: spacing.sm,
   },
-  monitoringStatus: {
+  statsToggle: {
+    padding: spacing.xs,
+  },
+  statsToggleIcon: {
+    fontSize: 24,
+  },
+  filterContainer: {
+    paddingVertical: spacing.sm,
+  },
+  filterScroll: {
+    paddingHorizontal: spacing.md,
+  },
+  filterButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginRight: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterButtonText: {
     ...typography.caption,
-    color: colors.success,
-    marginTop: spacing.xs / 2,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  filterButtonTextActive: {
+    color: colors.surface,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

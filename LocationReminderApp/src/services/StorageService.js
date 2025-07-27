@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import LocationHistoryService from './LocationHistoryService';
 
 const STORAGE_KEYS = {
   REMINDERS: '@LocationReminder:reminders',
@@ -26,6 +27,9 @@ class StorageService {
         await this.migrateData(storedVersion, this.currentVersion);
         await this.setAppVersion(this.currentVersion);
       }
+      
+      // Initialize location history service
+      await LocationHistoryService.initialize();
       
       return true;
     } catch (error) {
@@ -129,6 +133,16 @@ class StorageService {
       
       reminders.unshift(newReminder);
       await this.saveReminders(reminders);
+      
+      // Add location to history
+      if (newReminder.locationData) {
+        await LocationHistoryService.addLocation({
+          latitude: newReminder.locationData.latitude,
+          longitude: newReminder.locationData.longitude,
+          address: newReminder.location,
+          radius: newReminder.locationData.radius,
+        });
+      }
       
       return newReminder;
     } catch (error) {

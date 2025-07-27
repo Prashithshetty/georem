@@ -18,6 +18,7 @@ import TypeToggle from '../components/TypeToggle';
 import ChecklistItem from '../components/ChecklistItem';
 import LocationSelectionScreenSearch from './LocationSelectionScreenSearch';
 import RadiusSelector from '../components/RadiusSelector';
+import QuickLocationPicker from '../components/QuickLocationPicker';
 import GeofenceManager from '../services/GeofenceManager';
 
 const CreateReminderScreen = ({ navigation, onSave }) => {
@@ -269,9 +270,21 @@ const CreateReminderScreen = ({ navigation, onSave }) => {
     </View>
   );
 
+  const handleQuickLocationSelect = (location) => {
+    setSelectedLocation(location);
+    if (locationError) setLocationError('');
+  };
+
   const renderLocationSelector = () => (
     <View style={styles.section}>
       <Text style={styles.sectionLabel}>Location</Text>
+      
+      {/* Quick Location Picker */}
+      <QuickLocationPicker
+        onLocationSelect={handleQuickLocationSelect}
+        selectedLocation={selectedLocation}
+      />
+      
       <TouchableOpacity
         style={[styles.locationButton, locationError && styles.inputError]}
         onPress={handleLocationPress}
