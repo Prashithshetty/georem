@@ -48,11 +48,7 @@ pids
 coverage/
 .nyc_output/
 
-# Build files
-build/
-*.apk
-*.aab
-*.ipa
+
 
 # EAS Build
 eas-build-*
