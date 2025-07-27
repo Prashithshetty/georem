@@ -27,7 +27,7 @@ A React Native Expo application for creating location-based reminders with geofe
 
 1. **Clone the repository:**
 ```bash
-git clone <your-repo-url>
+git clone     https://github.com/Prashithshetty/georem.git
 cd georem
 ```
 
